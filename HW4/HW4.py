@@ -454,33 +454,33 @@ def main():
     # print("test esoft pi")
     # print(monte_carlo.pi_esoft_func(monte_carlo.pi_esoft, s=()))
 
-    # print("running first visit monte carlo")
+    print("running first visit monte carlo")
     # itr_list = []
     # from tqdm import tqdm
     # for _ in tqdm(range(20)):
     #     itr_list.append(monte_carlo.first_visit())
     # print("average nuumber of iterations = {}".format(mean(itr_list)))
-    # print(monte_carlo.first_visit())
-    # print(monte_carlo.v)
+    print(monte_carlo.first_visit())
+    print(monte_carlo.v)
 
     print("running the every visit monte carlo")    
-    itr_list = []
-    from tqdm import tqdm
-    for _ in tqdm(range(1)):
-        itr_list.append(monte_carlo.every_visit())
-        print(mean(itr_list))
-    print("average nuumber of iterations = {}".format(mean(itr_list)))
-    # print(monte_carlo.every_visit())
-    # print(monte_carlo.v)
+    # itr_list = []
+    # from tqdm import tqdm
+    # for _ in tqdm(range(1)):
+    #     itr_list.append(monte_carlo.every_visit())
+    #     print(mean(itr_list))
+    # print("average nuumber of iterations = {}".format(mean(itr_list)))
+    print(monte_carlo.every_visit())
+    print(monte_carlo.v)
 
-    # for eps in [0.2, 0.1, 0.05]:
-    #     print("running e soft with e = {}".format(eps))
-    #     print(monte_carlo.e_soft(eps))
-    #     print(monte_carlo.v)
+    for eps in [0.2, 0.1, 0.05]:
+        print("running e soft with e = {}".format(eps))
+        print(monte_carlo.e_soft(eps))
+        print(monte_carlo.v)
 
-    # print("running e soft with decay")
-    # print(monte_carlo.e_soft(1, True))
-    # print(monte_carlo.v)
+    print("running e soft with decay")
+    print(monte_carlo.e_soft(1, True))
+    print(monte_carlo.v)
 
 if __name__ == '__main__':
     main()
