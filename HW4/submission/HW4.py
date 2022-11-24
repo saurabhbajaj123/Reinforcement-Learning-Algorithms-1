@@ -1,9 +1,7 @@
 from ast import main
 import collections
-from email.policy import default
 from statistics import mean
 import numpy as np
-import math
 import random
 from collections import defaultdict
 import matplotlib.pyplot as plt
@@ -308,13 +306,13 @@ class MonteCarlo():
             max_norm.append(np.amax(abs(self.v - self.v_star)))
             if np.amax(abs(self.v - self.v_star)) < 0.1:
                 break
-        # print("max norm = {}".format(max_norm[-1]))
-        # print("Iterations to converge = {}".format(count))
-        # plt.plot(max_norm)
-        # plt.title("Max norm")
-        # plt.xlabel("Iterations")
-        # plt.ylabel("Max norm")
-        # plt.show()
+        print("max norm = {}".format(max_norm[-1]))
+        print("Iterations to converge = {}".format(count))
+        plt.plot(max_norm)
+        plt.title("Max norm")
+        plt.xlabel("Iterations")
+        plt.ylabel("Max norm")
+        plt.show()
         return count
     
 
@@ -343,15 +341,15 @@ class MonteCarlo():
                 # print(returns)
                 self.v[s[0]][s[1]] = mean(returns[s])
             max_norm.append(np.amax(abs(self.v - self.v_star)))
-            if np.amax(abs(self.v - self.v_star)) < 0.1:
+            if np.amax(abs(self.v - self.v_star)) < 0.1 or count > 10000:
                 break
-        # print("max norm = {}".format(max_norm[-1]))
-        # print("Iterations to converge = {}".format(count))
-        # plt.plot(max_norm)
-        # plt.title("Max norm")
-        # plt.xlabel("Iterations")
-        # plt.ylabel("Max norm")
-        # plt.show()
+        print("max norm = {}".format(max_norm[-1]))
+        print("Iterations to converge = {}".format(count))
+        plt.plot(max_norm)
+        plt.title("Max norm")
+        plt.xlabel("Iterations")
+        plt.ylabel("Max norm")
+        plt.show()
         return count
  
     def e_soft(self, eps, decay=False):
@@ -466,7 +464,7 @@ def main():
     print("running the every visit monte carlo")    
     # itr_list = []
     # from tqdm import tqdm
-    # for _ in tqdm(range(1)):
+    # for _ in tqdm(range(20)):
     #     itr_list.append(monte_carlo.every_visit())
     #     print(mean(itr_list))
     # print("average nuumber of iterations = {}".format(mean(itr_list)))
