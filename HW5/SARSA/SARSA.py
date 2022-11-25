@@ -7,7 +7,7 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import copy
-
+import matplotlib.lines as mlines
 
 class SARSA():
     def __init__(self, alpha, gamma, delta):
@@ -255,6 +255,8 @@ class SARSA():
         chosen_action = np.random.choice(4, 1, p=pi[s[0]][s[1]])
         return self.actions[chosen_action[0]]
 
+
+
     def policy_prob(self, s, a, pi, eps):
         A_star = pi[s]
         A = self.actions
@@ -304,12 +306,20 @@ class SARSA():
         np.put(self.test_pol[row][col], best_a_list, [new_prob]*len(best_a_list))
         np.put(self.test_pol[row][col], not_best_list, [remaining_prob]*len(not_best_list))
 
+    def softmax_policy_update(self, s, sigma):
+        p = sigma*self.q[s[0]][s[1]]
+        self.test_pol[s[0]][s[1]] = np.exp(p - max(p))/sum(np.exp(p - max(p)))
 
     def sarsa(self, eps):
+
+
         max_norm = []
         mse = []
         itr_number = []
         count = 0
+        num_actions = 0
+        num_episodes_list = []
+        num_actions_list = []
         while True:
             count += 1
             
@@ -317,6 +327,7 @@ class SARSA():
             prev_v = copy.deepcopy(self.v)
             s = self.d0()
             while(s != (4, 4)):
+                num_actions += 1
                 a = self.pi_esoft_func(self.test_pol, s, eps)
                 s_prime = self.trans_func(s, a)
                 r = self.reward(s, a, s_prime)
@@ -332,39 +343,79 @@ class SARSA():
                 self.q[row][col][index_a] = self.q[row][col][index_a] \
                     + self.alpha * (r + (self.gamma * self.q[next_row][next_col][index_next_a]) - self.q[row][col][index_a]) 
 
-                self.e_soft_policy_update(s=s, eps=eps)
-                s = s_prime
+                # self.e_soft_policy_update(s=s, eps=eps)
+                self.softmax_policy_update(s=s, sigma=count)
 
-            max_norm.append(np.amax(abs(self.q - prev_q)))
+                s = s_prime
+            num_episodes_list.append(count)
+            num_actions_list.append(num_actions)
             if count % 250 == 0:
                 mse.append(self.mse(self.v, self.v_star))
                 itr_number.append(count)
-            # if count > 50000:
-            #     break
-            for s in self.states:
-                self.v[s[0]][s[1]] = sum([self.test_pol[s[0]][s[1]][a_index]*self.q[s[0]][s[1]][a_index] for a_index, a in enumerate(self.actions)])
-            
+            if count > 5000:
+                break
+            # for s in self.states:
+            #     self.v[s[0]][s[1]] = sum([self.test_pol[s[0]][s[1]][a_index]*self.q[s[0]][s[1]][a_index] for a_index, a in enumerate(self.actions)])
+            self.v = np.sum(self.test_pol*self.q, axis=2)
+            # print("shape = {}".format((self.v).shape))
             # if np.amax(abs(self.v - prev_v)) < self.delta:
             #     break            
+            max_norm.append(np.amax(abs(self.v - self.v_star)))
             if np.amax(abs(self.v - self.v_star)) < self.delta:
                 break
+            # num_acts_mean_list.append(num_actions_list)
+            # plt.figure(0)
+            # plt.plot(num_actions_list, num_episodes_list, 'c')
+            # plt.title("Learning curve")
+            # plt.xlabel("Time Steps")
+            # plt.ylabel("Episodes")
+
+            # mse_mean_list.append(mse)
+            # plt.figure(1)
+            # plt.plot(itr_number, mse, 'r')
+            # plt.title("Mean squared Error")
+            # plt.xlabel("Iterations")
+            # plt.ylabel("MSE")
+
+        # column_average = [sum(sub_list) / len(sub_list) for sub_list in zip(*num_acts_mean_list)]
+        # plt.figure(0)
+        # plt.plot(column_average, num_episodes_list, 'k')
+        # plt.title("Learning curve")
+        # plt.xlabel("Time Steps")
+        # plt.ylabel("Episodes")
+        # # eight = mlines.Line2D([], [], color='c', marker='s', ls='', label='')
+        # nine = mlines.Line2D([], [], color='k', marker='s', ls='', label='mean')
+        # plt.legend(handles=[nine])
+
+
+
+        # print(column_average_mse)
+        # column_average_mse = [sum(sub_list) / len(sub_list) for sub_list in zip(*mse_mean_list)]
+        # plt.figure(1)
+        # plt.plot(itr_number, column_average_mse, 'k')
+        # plt.title("Mean squared Error")
+        # plt.xlabel("Iterations")
+        # plt.ylabel("MSE")
+        # nine = mlines.Line2D([], [], color='k', marker='s', ls='', label='mean')
+        # plt.legend(handles=[nine])
+
         # print("max norm = {}".format(max_norm[-1]))
         # print("Iterations to converge = {}".format(count))
-        # # plt.plot(max_norm)
-        # # plt.title("Max norm")
-        # # plt.xlabel("Iterations")
-        # # plt.ylabel("Max norm")
+        # plt.plot(max_norm)
+        # plt.title("Max norm")
+        # plt.xlabel("Iterations")
+        # plt.ylabel("Max norm")
         # print("MSE = {}".format(mse[-1]))
         # # plt.plot(max_norm)
         # # plt.title("Plotting Max norm")
 
-        # plt.plot(itr_number, mse)
-        # # plt.title("Mean squared Error for eps = {}".format(eps))
-        # plt.title("Mean squared Error for alpha = {}".format(self.alpha))
-        # plt.xlabel("Iterations")
-        # plt.ylabel("MSE")
+        # # plt.plot(itr_number, mse)
+        # # # plt.title("Mean squared Error for eps = {}".format(eps))
+        # # plt.title("Mean squared Error for alpha = {}".format(self.alpha))
+        # # plt.xlabel("Iterations")
+        # # plt.ylabel("MSE")
         # plt.show()
-        return count
+        return count, num_episodes_list, num_actions_list, mse, itr_number
     
 
 
@@ -490,16 +541,6 @@ class SARSA():
         return np.square(np.subtract(m1, m2)).mean() 
 
     def print_policy(self):
-        po = []
-        for s in self.states:
-            tmp = np.argmax(self.test_pol[s[0]][s[1]])
-            print(tmp, self.test_pol[s[0]][s[1]])
-            for i,a in enumerate(self.actions):
-                po.append(self.actions[tmp])
-
-        # [(-1,0), (0,1), (1,0), (0,-1)] # up, right, down, left
-        arrows = {(-1,0):"↑", (1,0):"↓", (0,-1):"←", (0,1):"→"}
-
         print("Policy:") # Printing policy
         k = 0
         for i in range(5):
@@ -509,7 +550,8 @@ class SARSA():
                 elif (i == 2 or i == 3) and j == 2:
                     print(" ", end = " ")
                 else:
-                    print(arrows[po[k]], end=" ")
+                    ind = np.argmax(self.test_pol[i][j])
+                    print(self.arrows[ind], end=" ")
                     k += 1
             print()
 
@@ -524,34 +566,82 @@ def main():
     gamma = 0.9
     alpha = 0.01
     delta = 0.1
-
+    sigma = 1
     print("running SARSA")
-    sarsa = SARSA(alpha=alpha, gamma=gamma, delta=delta)
-    print(sarsa.sarsa(eps=0.05))
-    # print(sarsa.test_pol)
-    
-    # sarsa.print_policy()
-    print(sarsa.v)
-    # iterations_count = []
-    # alpha_val = []
-    # count = 1
-    # runs = 1
-    # while alpha > 0.01:
-    #     alpha -= 0.01
+    num_acts_mean_list = []
+    mse_mean_list = []
+    for _ in tqdm(range(5)):
+        sarsa = SARSA(alpha=alpha, gamma=gamma, delta=delta)
+        count, num_episodes_list, num_actions_list, mse, itr_number = sarsa.sarsa(eps=sigma)
 
-    #     alpha = round(alpha, 4)
-    #     avg_count = 0
-    #     for _ in tqdm(range(runs)):
-    #         sarsa = SARSA(alpha=alpha, gamma=gamma, delta=delta)
-    #         avg_count += sarsa.sarsa()
-    #     print("alpha = {}, iterations = {}".format(alpha, avg_count/runs))
-    #     iterations_count.append(avg_count/runs)
-    #     alpha_val.append(alpha)
-    #     print(sarsa.q)
-    #     count += 1
-    # print(min(zip(iterations_count, alpha_val), key=lambda x: x[0]))
-    # plt.plot(alpha_val, iterations_count)
-    # plt.show()
+        plt.figure(0)
+        plt.plot(num_actions_list, num_episodes_list, 'c')
+        plt.title("Learning curve")
+        plt.xlabel("Time Steps")
+        plt.ylabel("Episodes")
+
+        plt.figure(1)
+        plt.plot(itr_number, mse, 'r')
+        plt.title("Mean squared Error")
+        plt.xlabel("Iterations")
+        plt.ylabel("MSE")
+
+        num_acts_mean_list.append(num_actions_list)
+        mse_mean_list.append(mse)
+
+        # sarsa.print_policy()
+
+
+    column_average = [sum(sub_list) / len(sub_list) for sub_list in zip(*num_acts_mean_list)]
+    plt.figure(0)
+    plt.plot(column_average, num_episodes_list, 'k')
+    plt.title("Learning curve")
+    plt.xlabel("Time Steps")
+    plt.ylabel("Episodes")
+    # eight = mlines.Line2D([], [], color='c', marker='s', ls='', label='')
+    nine = mlines.Line2D([], [], color='k', marker='s', ls='', label='mean')
+    plt.legend(handles=[nine])
+
+
+
+    column_average_mse = [sum(sub_list) / len(sub_list) for sub_list in zip(*mse_mean_list)]
+    plt.figure(1)
+    plt.plot(itr_number, column_average_mse, 'k')
+    plt.title("Mean squared Error")
+    plt.xlabel("Iterations")
+    plt.ylabel("MSE")
+    nine = mlines.Line2D([], [], color='k', marker='s', ls='', label='mean')
+    plt.legend(handles=[nine])
+
+    # print(sarsa.v)
+    plt.show()
+
+
+    sarsa = SARSA(alpha=alpha, gamma=gamma, delta=delta)
+    count, num_episodes_list, num_actions_list, mse, itr_number = sarsa.sarsa(eps=sigma)
+    sarsa.print_policy()
 
 if __name__ == '__main__':
     main()
+
+# softmax
+# sgima = 1
+# max norm = 2.6803206441324336
+# Iterations to converge = 100001
+# MSE = 2.856977604202377
+
+
+# increasing sigma
+# max norm = 0.5685375610412668
+# Iterations to converge = 200001
+# MSE = 0.02866223309949854
+
+
+
+"""
+We can initiailiza q to all zeros since we are doing exploration and using almost greedy policy. 
+Increasing sigma with iterations
+decreasing eps with iterations
+eps soft take longer to converge, sigma 
+If eps is constant, it needs to be small, yet it takes longer to converge
+"""
