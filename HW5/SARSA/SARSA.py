@@ -6,8 +6,10 @@ import random
 from collections import defaultdict
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import copy
 
-class TD():
+
+class SARSA():
     def __init__(self, alpha, gamma, delta):
         self.actions = [(-1,0), (0,1), (1,0), (0,-1)] # up, right, down, left 
         self.arrows = ["↑", "→","↓", "←"]
@@ -281,28 +283,69 @@ class TD():
             s = s_prime
         trajectory.append((((4,4), (0, 1)), 0))
         return trajectory
+    
+    def e_soft_policy_update(self, s, eps):
+        row = s[0]
+        col = s[1]
+
+        best_a_list = []
+        best_qsa = -float("inf")
+        
+        for i, expl_a in enumerate(self.actions):
+            if best_qsa < self.q[row][col][i]:
+                best_qsa = self.q[row][col][i]
+                best_a_list = [i]
+            elif best_qsa == self.q[row][col][i]:
+                best_a_list.append(i)
+
+        not_best_list = list(set(range(4)) - set(best_a_list))
+        new_prob = max(0, ((1- eps)/len(best_a_list)) + (eps/len(self.actions)))
+        remaining_prob = (eps/len(self.actions))
+        np.put(self.test_pol[row][col], best_a_list, [new_prob]*len(best_a_list))
+        np.put(self.test_pol[row][col], not_best_list, [remaining_prob]*len(not_best_list))
 
 
-    def td(self,):
-        # returns = collections.defaultdict(list)
+    def sarsa(self, eps):
         max_norm = []
         mse = []
         itr_number = []
         count = 0
         while True:
             count += 1
-            episode = self.generateEpisode(self.pi_star)
+            
+            prev_q = copy.deepcopy(self.q)
+            prev_v = copy.deepcopy(self.v)
+            s = self.d0()
+            while(s != (4, 4)):
+                a = self.pi_esoft_func(self.test_pol, s, eps)
+                s_prime = self.trans_func(s, a)
+                r = self.reward(s, a, s_prime)
 
-            for i in range(0, len(episode) - 1):
-                # a = self.pi_func(self.pi_star, episode[i][0])
-                self.v[episode[i][0][0]][episode[i][0][1]] = \
-                self.v[episode[i][0][0]][episode[i][0][1]] + \
-                self.alpha * (episode[i][1] + self.gamma * self.v[episode[i+1][0][0]][episode[i+1][0][1]] - self.v[episode[i][0][0]][episode[i][0][1]])
-            max_norm.append(np.amax(abs(self.v - self.v_star)))
+
+                row = s[0]
+                col = s[1]
+                index_a = self.actions.index(a)
+                next_a = self.pi_esoft_func(pi=self.test_pol, s=s_prime, eps=eps)
+                next_row = s_prime[0] 
+                next_col = s_prime[1]
+                index_next_a = self.actions.index(next_a)
+                self.q[row][col][index_a] = self.q[row][col][index_a] \
+                    + self.alpha * (r + (self.gamma * self.q[next_row][next_col][index_next_a]) - self.q[row][col][index_a]) 
+
+                self.e_soft_policy_update(s=s, eps=eps)
+                s = s_prime
+
+            max_norm.append(np.amax(abs(self.q - prev_q)))
             if count % 250 == 0:
                 mse.append(self.mse(self.v, self.v_star))
                 itr_number.append(count)
-
+            # if count > 50000:
+            #     break
+            for s in self.states:
+                self.v[s[0]][s[1]] = sum([self.test_pol[s[0]][s[1]][a_index]*self.q[s[0]][s[1]][a_index] for a_index, a in enumerate(self.actions)])
+            
+            # if np.amax(abs(self.v - prev_v)) < self.delta:
+            #     break            
             if np.amax(abs(self.v - self.v_star)) < self.delta:
                 break
         # print("max norm = {}".format(max_norm[-1]))
@@ -446,6 +489,31 @@ class TD():
     def mse(self, m1, m2):
         return np.square(np.subtract(m1, m2)).mean() 
 
+    def print_policy(self):
+        po = []
+        for s in self.states:
+            tmp = np.argmax(self.test_pol[s[0]][s[1]])
+            print(tmp, self.test_pol[s[0]][s[1]])
+            for i,a in enumerate(self.actions):
+                po.append(self.actions[tmp])
+
+        # [(-1,0), (0,1), (1,0), (0,-1)] # up, right, down, left
+        arrows = {(-1,0):"↑", (1,0):"↓", (0,-1):"←", (0,1):"→"}
+
+        print("Policy:") # Printing policy
+        k = 0
+        for i in range(5):
+            for j in range(5):
+                if i == 4 and j == 4:
+                    print("G", end = " ")
+                elif (i == 2 or i == 3) and j == 2:
+                    print(" ", end = " ")
+                else:
+                    print(arrows[po[k]], end=" ")
+                    k += 1
+            print()
+
+
 def main():
     def replace(inp, positions, char):
         for pos in positions:
@@ -454,30 +522,36 @@ def main():
     goal = [(0,2), (4,4)]
 
     gamma = 0.9
-    alpha = 0.1
+    alpha = 0.01
     delta = 0.1
 
-    print("running Temporal Difference Learning")
-    iterations_count = []
-    alpha_val = []
-    count = 1
-    runs = 20
-    while alpha > 0.001:
-        alpha -= 0.001
+    print("running SARSA")
+    sarsa = SARSA(alpha=alpha, gamma=gamma, delta=delta)
+    print(sarsa.sarsa(eps=0.05))
+    # print(sarsa.test_pol)
+    
+    # sarsa.print_policy()
+    print(sarsa.v)
+    # iterations_count = []
+    # alpha_val = []
+    # count = 1
+    # runs = 1
+    # while alpha > 0.01:
+    #     alpha -= 0.01
 
-        alpha = round(alpha, 4)
-        avg_count = 0
-        for _ in tqdm(range(runs)):
-            td = TD(alpha=alpha, gamma=gamma, delta=delta)
-            avg_count += td.td()
-        print("alpha = {}, iterations = {}".format(alpha, avg_count/runs))
-        iterations_count.append(avg_count/runs)
-        alpha_val.append(alpha)
-        print(td.v)
-        count += 1
-    print(min(zip(iterations_count, alpha_val), key=lambda x: x[0]))
-    plt.plot(alpha_val, iterations_count)
-    plt.show()
+    #     alpha = round(alpha, 4)
+    #     avg_count = 0
+    #     for _ in tqdm(range(runs)):
+    #         sarsa = SARSA(alpha=alpha, gamma=gamma, delta=delta)
+    #         avg_count += sarsa.sarsa()
+    #     print("alpha = {}, iterations = {}".format(alpha, avg_count/runs))
+    #     iterations_count.append(avg_count/runs)
+    #     alpha_val.append(alpha)
+    #     print(sarsa.q)
+    #     count += 1
+    # print(min(zip(iterations_count, alpha_val), key=lambda x: x[0]))
+    # plt.plot(alpha_val, iterations_count)
+    # plt.show()
 
 if __name__ == '__main__':
     main()
