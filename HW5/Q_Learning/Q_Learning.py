@@ -6,8 +6,10 @@ import random
 from collections import defaultdict
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import copy
+import matplotlib.lines as mlines
 
-class TD():
+class QLearning():
     def __init__(self, alpha, gamma, delta):
         self.actions = [(-1,0), (0,1), (1,0), (0,-1)] # up, right, down, left 
         self.arrows = ["↑", "→","↓", "←"]
@@ -253,6 +255,8 @@ class TD():
         chosen_action = np.random.choice(4, 1, p=pi[s[0]][s[1]])
         return self.actions[chosen_action[0]]
 
+
+
     def policy_prob(self, s, a, pi, eps):
         A_star = pi[s]
         A = self.actions
@@ -281,170 +285,158 @@ class TD():
             s = s_prime
         trajectory.append((((4,4), (0, 1)), 0))
         return trajectory
+    
+    def e_soft_policy_update(self, s, eps):
+        row = s[0]
+        col = s[1]
+
+        best_a_list = []
+        best_qsa = -float("inf")
+        
+        for i, expl_a in enumerate(self.actions):
+            if best_qsa < self.q[row][col][i]:
+                best_qsa = self.q[row][col][i]
+                best_a_list = [i]
+            elif best_qsa == self.q[row][col][i]:
+                best_a_list.append(i)
+
+        not_best_list = list(set(range(4)) - set(best_a_list))
+        new_prob = max(0, ((1- eps)/len(best_a_list)) + (eps/len(self.actions)))
+        remaining_prob = (eps/len(self.actions))
+        np.put(self.test_pol[row][col], best_a_list, [new_prob]*len(best_a_list))
+        np.put(self.test_pol[row][col], not_best_list, [remaining_prob]*len(not_best_list))
+
+    def softmax_policy_update(self, s, sigma):
+        p = sigma*self.q[s[0]][s[1]]
+        self.test_pol[s[0]][s[1]] = np.exp(p - max(p))/sum(np.exp(p - max(p)))
+
+    def qlearning(self, eps):
 
 
-    def td(self,):
-        # returns = collections.defaultdict(list)
         max_norm = []
         mse = []
         itr_number = []
         count = 0
+        num_actions = 0
+        num_episodes_list = []
+        num_actions_list = []
         while True:
             count += 1
-            episode = self.generateEpisode(self.pi_star)
+            
+            prev_q = copy.deepcopy(self.q)
+            prev_v = copy.deepcopy(self.v)
+            s = self.d0()
+            while(s != (4, 4)):
+                num_actions += 1
+                a = self.pi_esoft_func(self.test_pol, s, eps)
+                s_prime = self.trans_func(s, a)
+                r = self.reward(s, a, s_prime)
 
-            for i in range(0, len(episode) - 1):
-                # a = self.pi_func(self.pi_star, episode[i][0])
-                self.v[episode[i][0][0]][episode[i][0][1]] = \
-                self.v[episode[i][0][0]][episode[i][0][1]] + \
-                self.alpha * (episode[i][1] + self.gamma * self.v[episode[i+1][0][0]][episode[i+1][0][1]] - self.v[episode[i][0][0]][episode[i][0][1]])
-            max_norm.append(np.amax(abs(self.v - self.v_star)))
+
+                row = s[0]
+                col = s[1]
+                index_a = self.actions.index(a)
+                # next_a = self.pi_esoft_func(pi=self.test_pol, s=s_prime, eps=eps)
+                next_row = s_prime[0] 
+                next_col = s_prime[1]
+                # index_next_a = np.argmax(self.q[next_row][next_col])
+                self.q[row][col][index_a] = self.q[row][col][index_a] \
+                    + self.alpha * (r + (self.gamma * np.amax(self.q[next_row][next_col])) - self.q[row][col][index_a]) 
+
+                # self.e_soft_policy_update(s=s, eps=eps)
+                self.softmax_policy_update(s=s, sigma=count)
+
+                s = s_prime
+            num_episodes_list.append(count)
+            num_actions_list.append(num_actions)
             if count % 250 == 0:
                 mse.append(self.mse(self.v, self.v_star))
                 itr_number.append(count)
-
+            if count > 10000:
+                break
+            # for s in self.states:
+            #     self.v[s[0]][s[1]] = sum([self.test_pol[s[0]][s[1]][a_index]*self.q[s[0]][s[1]][a_index] for a_index, a in enumerate(self.actions)])
+            self.v = np.max(self.q, axis=2)
+            # print("shape = {}".format((self.v).shape))
+            # if np.amax(abs(self.v - prev_v)) < self.delta:
+            #     break            
+            max_norm.append(np.amax(abs(self.v - self.v_star)))
             if np.amax(abs(self.v - self.v_star)) < self.delta:
                 break
+            # num_acts_mean_list.append(num_actions_list)
+            # plt.figure(0)
+            # plt.plot(num_actions_list, num_episodes_list, 'c')
+            # plt.title("Learning curve")
+            # plt.xlabel("Time Steps")
+            # plt.ylabel("Episodes")
+
+            # mse_mean_list.append(mse)
+            # plt.figure(1)
+            # plt.plot(itr_number, mse, 'r')
+            # plt.title("Mean squared Error")
+            # plt.xlabel("Iterations")
+            # plt.ylabel("MSE")
+
+        # column_average = [sum(sub_list) / len(sub_list) for sub_list in zip(*num_acts_mean_list)]
+        # plt.figure(0)
+        # plt.plot(column_average, num_episodes_list, 'k')
+        # plt.title("Learning curve")
+        # plt.xlabel("Time Steps")
+        # plt.ylabel("Episodes")
+        # # eight = mlines.Line2D([], [], color='c', marker='s', ls='', label='')
+        # nine = mlines.Line2D([], [], color='k', marker='s', ls='', label='mean')
+        # plt.legend(handles=[nine])
+
+
+
+        # print(column_average_mse)
+        # column_average_mse = [sum(sub_list) / len(sub_list) for sub_list in zip(*mse_mean_list)]
+        # plt.figure(1)
+        # plt.plot(itr_number, column_average_mse, 'k')
+        # plt.title("Mean squared Error")
+        # plt.xlabel("Iterations")
+        # plt.ylabel("MSE")
+        # nine = mlines.Line2D([], [], color='k', marker='s', ls='', label='mean')
+        # plt.legend(handles=[nine])
+
         # print("max norm = {}".format(max_norm[-1]))
         # print("Iterations to converge = {}".format(count))
-        # # plt.plot(max_norm)
-        # # plt.title("Max norm")
-        # # plt.xlabel("Iterations")
-        # # plt.ylabel("Max norm")
+        # plt.plot(max_norm)
+        # plt.title("Max norm")
+        # plt.xlabel("Iterations")
+        # plt.ylabel("Max norm")
         # print("MSE = {}".format(mse[-1]))
         # # plt.plot(max_norm)
         # # plt.title("Plotting Max norm")
 
-        # plt.plot(itr_number, mse)
-        # # plt.title("Mean squared Error for eps = {}".format(eps))
-        # plt.title("Mean squared Error for alpha = {}".format(self.alpha))
-        # plt.xlabel("Iterations")
-        # plt.ylabel("MSE")
+        # # plt.plot(itr_number, mse)
+        # # # plt.title("Mean squared Error for eps = {}".format(eps))
+        # # plt.title("Mean squared Error for alpha = {}".format(self.alpha))
+        # # plt.xlabel("Iterations")
+        # # plt.ylabel("MSE")
         # plt.show()
-        return count
+        return count, num_episodes_list, num_actions_list, mse, itr_number
     
 
 
-    def every_visit(self, ):
-        returns = collections.defaultdict(list)
-        max_norm = []
-        count = 0
-        while True:
-            count += 1
-            episode = self.generateEpisode(self.pi_star)
-            # print("episode = {}".format(episode))
-            states_present = []
-            rewards = []
-            for s, r in episode:
-                states_present.append(s)
-                rewards.append(r)
-            for i, s in enumerate(states_present):
-                G = 0
-                temp_rewards = rewards[i:]
-                # print("temp_rewards = {}".format(temp_rewards))
-                for pow in range(len(temp_rewards)):
-                    G += (self.gamma**pow) * temp_rewards[pow]
-                # print(G)
-                returns[s].append(G)
-                # print(returns)
-                self.v[s[0]][s[1]] = mean(returns[s])
-            max_norm.append(np.amax(abs(self.v - self.v_star)))
-            if np.amax(abs(self.v - self.v_star)) < 0.1 or count > 10000:
-                break
-        print("max norm = {}".format(max_norm[-1]))
-        print("Iterations to converge = {}".format(count))
-        plt.plot(max_norm)
-        plt.title("Max norm")
-        plt.xlabel("Iterations")
-        plt.ylabel("Max norm")
-        plt.show()
-        return count
- 
-    def e_soft(self, eps, decay=False):
-        returns = collections.defaultdict(list)
-        max_norm = []
-        count = 0
-        mse = []
-        itr_number = []
-        while True and eps > 0:
-            count += 1
-            if decay and count % 500 == 0:
-                eps -= 0.05
-            # episode = self.generateEpisode_esoft(self.pi_esoft, eps)
-            episode = self.generateEpisode_esoft(self.test_pol, eps)
-            # print("episode = {}".format(episode))
-            states_action_present = []
-            rewards = []
-            for s_a, r in episode:
-                states_action_present.append(s_a)
-                rewards.append(r)
-            for s_a in set(states_action_present):
-                first_index = states_action_present.index(s_a)
-                G = 0
-                temp_rewards = rewards[first_index:]
-                for pow in range(len(temp_rewards)):
-                    G += (self.gamma**pow) * temp_rewards[pow]
-                # print("state= {}, action = {}".format(s_a[0], s_a[1]))
-                returns[s_a].append(G)
-                index_a = self.actions.index(s_a[1])
-                row = s_a[0][0]
-                col = s_a[0][1]
-                # print("q update value = {}".format(mean(returns[s_a])))
-                self.q[row][col][index_a] = mean(returns[s_a]) # Update q
-                # print("udated q value = {}".format(self.q[row][col][index_a]))
-                best_a_list = []
-                # print("list of best actions b4 = {}".format(best_a_list))
-                best_qsa = -float("inf")
-                # for i, expl_a in enumerate(self.actions):
-                #     if best_qsa < self.q[row][col][i]:
-                #         best_qsa = self.q[row][col][i]
-                #         best_a_list = [expl_a]
-                #     elif best_qsa == self.q[row][col][i]:
-                #         best_a_list.append(expl_a)
-                # self.pi_esoft[s_a[0]] = best_a_list
-                
-                for i, expl_a in enumerate(self.actions):
-                    if best_qsa < self.q[row][col][i]:
-                        best_qsa = self.q[row][col][i]
-                        best_a_list = [i]
-                    elif best_qsa == self.q[row][col][i]:
-                        best_a_list.append(i)
-                # print("list of best actions after = {}".format(best_a_list))
-                not_best_list = list(set(range(4)) - set(best_a_list))
-                new_prob = max(0, ((1- eps)/len(best_a_list)) + (eps/len(self.actions)))
-                remaining_prob = (eps/len(self.actions))
-                np.put(self.test_pol[row][col], best_a_list, [new_prob]*len(best_a_list))
-                np.put(self.test_pol[row][col], not_best_list, [remaining_prob]*len(not_best_list))
-            for s in self.states:
-                # self.v[s[0]][s[1]] = sum([self.policy_prob(s, a, self.pi_esoft, eps)*self.q[s[0]][s[1]][a_index] for a_index, a in enumerate(self.actions)])
-                self.v[s[0]][s[1]] = sum([self.test_pol[s[0]][s[1]][a_index]*self.q[s[0]][s[1]][a_index] for a_index, a in enumerate(self.actions)])
-            max_norm.append(np.amax(abs(self.v - self.v_star)))
-            # if np.amax(abs(self.v - self.v_star)) < 0.1:
-            if count % 250 == 0:
-                mse.append(self.mse(self.v, self.v_star))
-                itr_number.append(count)
-
-            if count > 10000:
-                break
-        print("max norm = {}".format(np.amax(abs(self.v - self.v_star))))
-        print("MSE = {}".format(mse[-1]))
-        # plt.plot(max_norm)
-        # plt.title("Plotting Max norm")
-
-        plt.plot(itr_number, mse)
-        # plt.title("Mean squared Error for eps = {}".format(eps))
-        plt.title("Mean squared Error for eps = {}".format("decaying"))
-        plt.xlabel("Iterations")
-        plt.ylabel("MSE")
-
-        plt.show()
-        # print(returns)
-
-
-        pass
-
     def mse(self, m1, m2):
         return np.square(np.subtract(m1, m2)).mean() 
+
+    def print_policy(self):
+        print("Policy:") # Printing policy
+        k = 0
+        for i in range(5):
+            for j in range(5):
+                if i == 4 and j == 4:
+                    print("G", end = " ")
+                elif (i == 2 or i == 3) and j == 2:
+                    print(" ", end = " ")
+                else:
+                    ind = np.argmax(self.test_pol[i][j])
+                    print(self.arrows[ind], end=" ")
+                    k += 1
+            print()
+
 
 def main():
     def replace(inp, positions, char):
@@ -454,30 +446,84 @@ def main():
     goal = [(0,2), (4,4)]
 
     gamma = 0.9
-    alpha = 0.1
+    alpha = 0.01
     delta = 0.1
+    sigma = 1
+    print("running SARSA")
+    num_acts_mean_list = []
+    mse_mean_list = []
+    for _ in tqdm(range(20)):
+        ql = QLearning(alpha=alpha, gamma=gamma, delta=delta)
+        count, num_episodes_list, num_actions_list, mse, itr_number = ql.qlearning(eps=sigma)
 
-    print("running Temporal Difference Learning")
-    iterations_count = []
-    alpha_val = []
-    count = 1
-    runs = 20
-    while alpha > 0.001:
-        alpha -= 0.001
+        plt.figure(0)
+        plt.plot(num_actions_list, num_episodes_list, 'c')
+        plt.title("Learning curve")
+        plt.xlabel("Time Steps")
+        plt.ylabel("Episodes")
 
-        alpha = round(alpha, 4)
-        avg_count = 0
-        for _ in tqdm(range(runs)):
-            td = TD(alpha=alpha, gamma=gamma, delta=delta)
-            avg_count += td.td()
-        print("alpha = {}, iterations = {}".format(alpha, avg_count/runs))
-        iterations_count.append(avg_count/runs)
-        alpha_val.append(alpha)
-        print(td.v)
-        count += 1
-    print(min(zip(iterations_count, alpha_val), key=lambda x: x[0]))
-    plt.plot(alpha_val, iterations_count)
+        plt.figure(1)
+        plt.plot(itr_number, mse, 'r')
+        plt.title("Mean squared Error")
+        plt.xlabel("Iterations")
+        plt.ylabel("MSE")
+
+        num_acts_mean_list.append(num_actions_list)
+        mse_mean_list.append(mse)
+
+        # sarsa.print_policy()
+
+
+    column_average = [sum(sub_list) / len(sub_list) for sub_list in zip(*num_acts_mean_list)]
+    plt.figure(0)
+    plt.plot(column_average, num_episodes_list, 'k')
+    plt.title("Learning curve")
+    plt.xlabel("Time Steps")
+    plt.ylabel("Episodes")
+    # eight = mlines.Line2D([], [], color='c', marker='s', ls='', label='')
+    nine = mlines.Line2D([], [], color='k', marker='s', ls='', label='mean')
+    plt.legend(handles=[nine])
+
+
+
+    column_average_mse = [sum(sub_list) / len(sub_list) for sub_list in zip(*mse_mean_list)]
+    plt.figure(1)
+    plt.plot(itr_number, column_average_mse, 'k')
+    plt.title("Mean squared Error")
+    plt.xlabel("Iterations")
+    plt.ylabel("MSE")
+    nine = mlines.Line2D([], [], color='k', marker='s', ls='', label='mean')
+    plt.legend(handles=[nine])
+
+    # print(sarsa.v)
     plt.show()
+
+
+    ql = QLearning(alpha=alpha, gamma=gamma, delta=delta)
+    count, num_episodes_list, num_actions_list, mse, itr_number = ql.qlearning(eps=sigma)
+    ql.print_policy()
 
 if __name__ == '__main__':
     main()
+
+# softmax
+# sgima = 1
+# max norm = 2.6803206441324336
+# Iterations to converge = 100001
+# MSE = 2.856977604202377
+
+
+# increasing sigma
+# max norm = 0.5685375610412668
+# Iterations to converge = 200001
+# MSE = 0.02866223309949854
+
+
+
+"""
+We can initiailiza q to all zeros since we are doing exploration and using almost greedy policy. 
+Increasing sigma with iterations
+decreasing eps with iterations
+eps soft take longer to converge, sigma 
+If eps is constant, it needs to be small, yet it takes longer to converge
+"""
