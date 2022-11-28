@@ -352,7 +352,7 @@ class QLearning():
             if count % 250 == 0:
                 mse.append(self.mse(self.v, self.v_star))
                 itr_number.append(count)
-            if count > 10000:
+            if count > 2000:
                 break
             # for s in self.states:
             #     self.v[s[0]][s[1]] = sum([self.test_pol[s[0]][s[1]][a_index]*self.q[s[0]][s[1]][a_index] for a_index, a in enumerate(self.actions)])
@@ -449,7 +449,7 @@ def main():
     alpha = 0.01
     delta = 0.1
     sigma = 1
-    print("running SARSA")
+    print("running Q Learning")
     num_acts_mean_list = []
     mse_mean_list = []
     for _ in tqdm(range(20)):
@@ -459,7 +459,7 @@ def main():
         plt.figure(0)
         plt.plot(num_actions_list, num_episodes_list, 'c')
         plt.title("Learning curve")
-        plt.xlabel("Time Steps")
+        plt.xlabel("Number of Steps")
         plt.ylabel("Episodes")
 
         plt.figure(1)

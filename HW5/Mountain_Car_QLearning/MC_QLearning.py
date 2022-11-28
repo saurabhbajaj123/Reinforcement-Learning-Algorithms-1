@@ -127,8 +127,8 @@ class QLearning:
 
                 self.update_q(s, s_prime, a, r)
 
-                self.e_soft_policy_update(s=s, eps=min(eps, 1/count))
-                # self.softmax_policy_update(s=s, sigma=count)
+                # self.e_soft_policy_update(s=s, eps=min(eps, 1/count))
+                self.softmax_policy_update(s=s, sigma=count)
 
                 s = s_prime
             # print()
@@ -139,7 +139,7 @@ class QLearning:
             
             self.v = np.max(self.q, axis=2)
 
-            if count > 50:
+            if count > 150:
                 break
                 
         return count, num_episodes_list, num_actions_list, num_steps_list
@@ -155,14 +155,14 @@ def main():
 
     num_acts_mean_list = []
     num_steps_mean = []
-    for _ in tqdm(range(10)):
+    for _ in tqdm(range(20)):
         ql = QLearning(alpha=alpha, gamma=gamma, delta=delta, num_bins=num_bins)
         count, num_episodes_list, num_actions_list, num_steps_list = ql.qlearning(eps=eps)
 
         plt.figure(0)
         plt.plot(num_actions_list, num_episodes_list, 'c')
         plt.title("Learning curve")
-        plt.xlabel("Time Steps")
+        plt.xlabel("Number of Steps till now")
         plt.ylabel("Episodes")
         num_acts_mean_list.append(num_actions_list)
 
@@ -178,7 +178,7 @@ def main():
     plt.figure(0)
     plt.plot(column_average, num_episodes_list, 'k')
     plt.title("Learning curve")
-    plt.xlabel("Time Steps")
+    plt.xlabel("Number of Steps till now")
     plt.ylabel("Episodes")
     # eight = mlines.Line2D([], [], color='c', marker='s', ls='', label='')
     nine = mlines.Line2D([], [], color='k', marker='s', ls='', label='mean')
@@ -190,7 +190,7 @@ def main():
     plt.figure(1)
     plt.plot(num_episodes_list, column_average_steps, 'k')
     # plt.fill_between(column_average_steps, list(map(float.__add__, column_average_steps, column_variance_steps)), list(map(float.__sub__, column_average_steps, column_variance_steps)), facecolor='blue', alpha=0.5)
-    plt.errorbar(num_episodes_list, column_average_steps, yerr=column_variance_steps, elinewidth=0.75, linestyle='None', marker='.')
+    plt.errorbar(num_episodes_list, column_average_steps, yerr=column_variance_steps, elinewidth=0.75, linestyle='None')
     plt.title("Learning curve")
     plt.ylabel("Number of Steps")
     plt.xlabel("Episodes")
