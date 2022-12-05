@@ -1,0 +1,25 @@
+sigma = 10, K = 170, Ke = 5, M = 6, N = 10
+breaking because of J
+last J = -99.3
+Time taken = 97.38323974609375
+sigma = 10, K = 170, Ke = 10, M = 6, N = 10
+breaking because of J
+last J = -99.2
+Time taken = 335.14058017730713
+sigma = 10, K = 170, Ke = 50, M = 6, N = 10
+breaking because of J
+last J = -96.9
+Time taken = 337.4367747306824
+sigma = 15, K = 170, Ke = 5, M = 6, N = 10
+last J = -232.7
+Time taken = 3145.6244616508484
+sigma = 15, K = 170, Ke = 10, M = 6, N = 10
+breaking because of J
+last J = -99.4
+Time taken = 76.91257667541504
+sigma = 15, K = 170, Ke = 50, M = 6, N = 10
+breaking because of J
+last J = -97.7
+Time taken = 82.58759760856628
+highest J = -96.9
+Best parameterts = (10, 170, 50, 6, 10)

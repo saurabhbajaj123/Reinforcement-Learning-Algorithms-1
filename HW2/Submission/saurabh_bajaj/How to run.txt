@@ -1,0 +1,12 @@
+1) Install libraries - random, math, statistics, numpy, matplotlib, tqdm, time
+
+2) The function policy implements the policy for the agent, where the choice of state-feature representation (sine or cos) can be done by uncommenting lines number 21-22 (for sine) or 19-20 (for cos). 
+
+3) The BBO_CEM method is using early stopping criteria to avoid running for the max number of iterations, you can comment that out if needed Lines (109-115)
+
+4) Main method implements the hyperparameter tuning, currently the hyperparameters are set to a single best value that I found during my experiments, 
+
+5) Main method also runs the CEM algorithm for 20 runs, with the list of top 5 best hyperparameter ranges found and also plots figures for each of them and saves the figure
+
+6) To run the code run the command "python HW2.py" in the directory of the HW file.
+

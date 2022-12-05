@@ -1,0 +1,14 @@
+sigma = 0.61, K = 260, Ke = 5, M = 4, N = 10
+last J = -110.5
+sigma = 0.61, K = 266, Ke = 5, M = 4, N = 10
+last J = -125.8
+sigma = 0.6, K = 260, Ke = 5, M = 4, N = 10
+last J = -136.5
+sigma = 0.6, K = 266, Ke = 5, M = 4, N = 10
+last J = -155.8
+sigma = 0.14, K = 260, Ke = 5, M = 4, N = 10
+last J = -1000.0
+sigma = 0.14, K = 266, Ke = 5, M = 4, N = 10
+last J = -116.9
+highest J = -110.5
+Best parameterts = (0.61, 260, 5, 4, 10)

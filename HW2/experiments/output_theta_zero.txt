@@ -1,0 +1,18 @@
+sigma = 15, K = 170, Ke = 5, M = 2, N = 10
+breaking because of theta
+last J = -108.5
+Time taken = 105.45674991607666
+sigma = 15, K = 170, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -104.7
+Time taken = 789.6086010932922
+sigma = 15, K = 170, Ke = 5, M = 6, N = 10
+breaking because of J
+last J = -98.3
+Time taken = 198.46225357055664
+sigma = 15, K = 170, Ke = 5, M = 8, N = 10
+breaking because of J
+last J = -143.4
+Time taken = 608.0289387702942
+highest J = -98.3
+Best parameterts = (15, 170, 5, 6, 10)

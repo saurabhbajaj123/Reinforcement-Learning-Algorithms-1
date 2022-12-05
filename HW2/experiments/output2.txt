@@ -1,0 +1,27 @@
+sigma = 0.6, K = 250, Ke = 5, M = 2, N = 10
+last J = -104.8399790320042
+sigma = 0.6, K = 250, Ke = 5, M = 4, N = 10
+last J = -103.2
+sigma = 0.6, K = 250, Ke = 5, M = 6, N = 10
+last J = -127.9
+sigma = 0.6, K = 250, Ke = 5, M = 8, N = 10
+last J = -98.45998030800394
+sigma = 0.6, K = 250, Ke = 5, M = 10, N = 10
+last J = -102.6199794760041
+sigma = 0.6, K = 250, Ke = 5, M = 12, N = 10
+last J = -121.9
+sigma = 0.6, K = 250, Ke = 5, M = 14, N = 10
+last J = -124.81997503600499
+sigma = 0.6, K = 250, Ke = 5, M = 16, N = 10
+last J = -125.73997485200503
+sigma = 0.6, K = 250, Ke = 5, M = 18, N = 10
+last J = -148.0
+sigma = 0.6, K = 300, Ke = 5, M = 2, N = 10
+last J = -103.9
+sigma = 0.6, K = 300, Ke = 5, M = 4, N = 10
+last J = -112.6
+sigma = 0.6, K = 300, Ke = 5, M = 6, N = 10
+last J = -96.57998068400386
+sigma = 0.6, K = 300, Ke = 5, M = 8, N = 10
+last J = -111.1
+sigma = 0.6, K = 300, Ke = 5, M = 10, N = 10

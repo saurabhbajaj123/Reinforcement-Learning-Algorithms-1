@@ -1,0 +1,74 @@
+sigma = 5, K = 20, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -105.7
+Time taken = 15.953438997268677
+sigma = 5, K = 50, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -113.4
+Time taken = 72.61641478538513
+sigma = 5, K = 90, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -149.3
+Time taken = 440.4469745159149
+sigma = 5, K = 150, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -101.2
+Time taken = 241.60359907150269
+sigma = 5, K = 230, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -122.7
+Time taken = 661.8001487255096
+sigma = 5, K = 330, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -109.0
+Time taken = 370.8261706829071
+sigma = 10, K = 20, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -118.5
+Time taken = 17.47019648551941
+sigma = 10, K = 50, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -109.4
+Time taken = 154.75585556030273
+sigma = 10, K = 90, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -115.3
+Time taken = 540.6707277297974
+sigma = 10, K = 150, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -106.6
+Time taken = 166.18634796142578
+sigma = 10, K = 230, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -118.1
+Time taken = 1304.0948536396027
+sigma = 10, K = 330, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -105.0
+Time taken = 618.1608595848083
+sigma = 15, K = 20, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -147.0
+Time taken = 484.14707612991333
+sigma = 15, K = 50, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -109.3
+Time taken = 74.60446834564209
+sigma = 15, K = 90, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -137.5
+Time taken = 606.059606552124
+sigma = 15, K = 150, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -112.9
+Time taken = 220.78661012649536
+sigma = 15, K = 230, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -110.4
+Time taken = 166.5811002254486
+sigma = 15, K = 330, Ke = 5, M = 4, N = 10
+breaking because of J
+last J = -110.5
+Time taken = 1974.3988225460052
+highest J = -101.2
+Best parameterts = (5, 150, 5, 4, 10)

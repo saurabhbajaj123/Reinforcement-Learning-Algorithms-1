@@ -1,0 +1,6 @@
+sigma = 0.52, K = 250, Ke = 5, M = 4, N = 10
+last J = -176.6
+sigma = 0.72, K = 250, Ke = 5, M = 4, N = 10
+last J = -123.4
+highest J = -123.4
+Best parameterts = (0.72, 250, 5, 4, 10)
